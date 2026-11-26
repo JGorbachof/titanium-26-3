@@ -1,0 +1,91 @@
+plugins {
+  id 'java-library'
+  id 'net.neoforged.moddev' version '2.0.148'
+
+
+
+}
+
+final mcVersion = "26.3"
+version = "26.3-4.0.18-alpha.1"
+group = modGroup
+
+if (System.getenv('BUILD_NUMBER') != null) {
+  version += "." + System.getenv('BUILD_NUMBER')
+}
+
+repositories {
+    maven {
+        name = "BlameJared maven"
+        url = "https://maven.blamejared.com/"
+    }
+    maven {
+        url "https://www.cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
+}
+
+base {
+    archivesName = modBaseName
+}
+
+// Minecraft 26.1.2 ships with Java 25.
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+
+neoForge {
+    version = "${neo_version}"
+
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+          programArgument '--nogui'
+        }
+    }
+
+    mods {
+        titanium {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+dependencies {
+  compileOnly "mezz.jei:jei-26.3-common-api:$jei_version"
+  compileOnly "mezz.jei:jei-26.3-neoforge-api:$jei_version"
+
+  //runtimeOnly "curse.maven:industrial-foregoing-266515:5866238"
+  //runtimeOnly "curse.maven:functional-storage-556861:5861256"
+  //runtimeOnly "curse.maven:super-factory-manager-306935:5664209"
+  //implementation "curse.maven:refined-storage-243076:5165548"
+}
+
+jar {
+  manifest {
+    attributes(["Specification-Title"     : project.name,
+                "Specification-Vendor"    : "Horizon Studio",
+                "Specification-Version"   : "2.0",
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : "${project.version}",
+                "Implementation-Vendor"   : "Horizon Studio",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                "Maven-Artifact": "${group}:${base.archivesName.get()}:${version}",
+                "ModSide"                 : "BOTH",
+                "Automatic-Module-Name"   : "com.hrznstdio.titanium"
+    ])
+
+  }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+  options.compilerArgs.addAll(['-Xmaxerrs', '1000', '-Xmaxwarns', '1000'])
+}
+
+
+java { withSourcesJar() }
+tasks.processResources { from('LICENSE.md', 'COPYING.GPL-3.0.txt', 'PORT_NOTES.md') }
